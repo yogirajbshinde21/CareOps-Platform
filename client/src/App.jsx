@@ -121,13 +121,27 @@ function App() {
             <ProtectedRoute><Layout /></ProtectedRoute>
           }>
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="bookings" element={<Bookings />} />
-            <Route path="contacts" element={<Contacts />} />
-            <Route path="inbox" element={<Inbox />} />
-            <Route path="team" element={<TeamMembers />} />
-            <Route path="forms" element={<Forms />} />
-            <Route path="inventory" element={<Inventory />} />
-            <Route path="activity" element={<ActivityLog />} />
+            <Route path="bookings" element={
+              <ProtectedRoute requiredPermission="bookings"><Bookings /></ProtectedRoute>
+            } />
+            <Route path="contacts" element={
+              <ProtectedRoute requiredPermission="contacts"><Contacts /></ProtectedRoute>
+            } />
+            <Route path="inbox" element={
+              <ProtectedRoute requiredPermission="inbox"><Inbox /></ProtectedRoute>
+            } />
+            <Route path="team" element={
+              <ProtectedRoute adminOnly><TeamMembers /></ProtectedRoute>
+            } />
+            <Route path="forms" element={
+              <ProtectedRoute requiredPermission="forms"><Forms /></ProtectedRoute>
+            } />
+            <Route path="inventory" element={
+              <ProtectedRoute requiredPermission="inventory"><Inventory /></ProtectedRoute>
+            } />
+            <Route path="activity" element={
+              <ProtectedRoute requiredPermission="activity"><ActivityLog /></ProtectedRoute>
+            } />
           </Route>
 
           {/* Catch-all */}

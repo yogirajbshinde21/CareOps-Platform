@@ -5,6 +5,7 @@ const supabase = require('../config/supabase');
 /**
  * Middleware to verify JWT token and attach user to request.
  * Expects header: Authorization: Bearer <token>
+ * Also fetches assigned service IDs for staff members.
  */
 const authenticate = async (req, res, next) => {
   try {
@@ -26,6 +27,20 @@ const authenticate = async (req, res, next) => {
 
     if (error || !user) {
       return res.status(401).json({ error: 'Invalid token - user not found' });
+    }
+
+    // For staff members, fetch their assigned service IDs
+    if (user.role === 'staff') {
+      const { data: assignments } = await supabase
+        .from('staff_services')
+        .select('service_id')
+        .eq('user_id', user.id)
+        .eq('workspace_id', user.workspace_id);
+      
+      user.assigned_service_ids = (assignments || []).map(a => a.service_id);
+    } else {
+      // Owners and admins have access to all services
+      user.assigned_service_ids = null; // null means "all"
     }
 
     req.user = user;

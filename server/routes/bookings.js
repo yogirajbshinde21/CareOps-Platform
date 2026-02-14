@@ -20,6 +20,15 @@ router.get('/', authenticate, async (req, res) => {
     if (status) query = query.eq('status', status);
     if (date) query = query.eq('date', date);
 
+    // Staff members can only see bookings for their assigned services
+    if (req.user.assigned_service_ids !== null) {
+      if (req.user.assigned_service_ids.length === 0) {
+        // Staff with no assigned services sees no bookings
+        return res.json([]);
+      }
+      query = query.in('service_id', req.user.assigned_service_ids);
+    }
+
     const { data, error } = await query;
     if (error) return res.status(400).json({ error: error.message });
     res.json(data);
@@ -32,6 +41,11 @@ router.get('/', authenticate, async (req, res) => {
 router.post('/', authenticate, async (req, res) => {
   try {
     const { contact_id, service_id, date, start_time, end_time, notes } = req.body;
+
+    // Staff can only create bookings for their assigned services
+    if (req.user.assigned_service_ids !== null && !req.user.assigned_service_ids.includes(service_id)) {
+      return res.status(403).json({ error: 'You are not assigned to this service' });
+    }
 
     const { data, error } = await supabase
       .from('bookings')
@@ -71,6 +85,11 @@ router.post('/:id/remind', authenticate, async (req, res) => {
       .single();
 
     if (error || !booking) return res.status(404).json({ error: 'Booking not found' });
+
+    // Staff can only send reminders for their assigned services
+    if (req.user.assigned_service_ids !== null && !req.user.assigned_service_ids.includes(booking.service_id)) {
+      return res.status(403).json({ error: 'You do not have access to this booking' });
+    }
 
     const { data: workspace } = await supabase.from('workspaces').select('*').eq('id', req.user.workspace_id).single();
     
@@ -289,6 +308,21 @@ router.put('/:id/status', authenticate, async (req, res) => {
     const { status } = req.body;
     if (!['pending', 'confirmed', 'cancelled', 'completed', 'no_show'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    // First fetch the booking to check service assignment
+    const { data: existing } = await supabase
+      .from('bookings')
+      .select('service_id')
+      .eq('id', req.params.id)
+      .eq('workspace_id', req.user.workspace_id)
+      .single();
+
+    if (!existing) return res.status(404).json({ error: 'Booking not found' });
+
+    // Staff can only update bookings for their assigned services
+    if (req.user.assigned_service_ids !== null && !req.user.assigned_service_ids.includes(existing.service_id)) {
+      return res.status(403).json({ error: 'You do not have access to this booking' });
     }
 
     const { data, error } = await supabase

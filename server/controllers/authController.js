@@ -104,6 +104,7 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        permissions: {},
         workspace_id: workspace.id
       },
       workspace: {
@@ -134,7 +135,7 @@ const login = async (req, res) => {
     // Find user by email
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, workspace_id, name, email, password_hash, role')
+      .select('id, workspace_id, name, email, password_hash, role, permissions')
       .eq('email', email.toLowerCase())
       .single();
 
@@ -170,6 +171,7 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        permissions: user.permissions || {},
         workspace_id: user.workspace_id
       },
       workspace

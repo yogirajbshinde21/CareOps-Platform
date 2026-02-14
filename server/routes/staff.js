@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
   try {
     const { data: staff, error } = await supabase
       .from('users')
-      .select('id, name, email, role, avatar_url, is_active, created_at')
+      .select('id, name, email, role, avatar_url, is_active, created_at, permissions')
       .eq('workspace_id', req.user.workspace_id)
       .order('created_at', { ascending: true });
 
@@ -170,6 +170,36 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     console.error('Staff delete error:', err);
     res.status(500).json({ error: 'Failed to remove staff member' });
+  }
+});
+
+// PUT /api/staff/:id/permissions - Update section permissions for staff member
+router.put('/:id/permissions', async (req, res) => {
+  try {
+    if (req.user.role !== 'owner' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only owners and admins can update permissions' });
+    }
+
+    const { permissions } = req.body;
+    if (!permissions || typeof permissions !== 'object') {
+      return res.status(400).json({ error: 'permissions object required' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ permissions })
+      .eq('id', req.params.id)
+      .eq('workspace_id', req.user.workspace_id)
+      .select('id, name, email, role, permissions, is_active')
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Staff member not found' });
+
+    res.json(data);
+  } catch (err) {
+    console.error('Permissions update error:', err);
+    res.status(500).json({ error: 'Failed to update permissions' });
   }
 });
 

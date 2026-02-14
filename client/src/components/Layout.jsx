@@ -1,5 +1,5 @@
 // client/src/components/Layout.jsx - Responsive app shell with sidebar
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -8,15 +8,16 @@ import {
 } from 'lucide-react';
 import { notifyThemeChange } from '../utils/darkMode';
 
+// Navigation items with permission keys (null = always visible, 'team' = owners/admins only)
 const navItems = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/bookings', icon: Calendar, label: 'Bookings' },
-  { path: '/inbox', icon: MessageSquare, label: 'Inbox' },
-  { path: '/contacts', icon: Users, label: 'Contacts' },
-  { path: '/team', icon: UsersRound, label: 'Team' },
-  { path: '/forms', icon: FileText, label: 'Forms' },
-  { path: '/inventory', icon: Package, label: 'Inventory' },
-  { path: '/activity', icon: Clock, label: 'Activity Log' },
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', permKey: null },
+  { path: '/bookings', icon: Calendar, label: 'Bookings', permKey: 'bookings' },
+  { path: '/inbox', icon: MessageSquare, label: 'Inbox', permKey: 'inbox' },
+  { path: '/contacts', icon: Users, label: 'Contacts', permKey: 'contacts' },
+  { path: '/team', icon: UsersRound, label: 'Team', permKey: 'team' },
+  { path: '/forms', icon: FileText, label: 'Forms', permKey: 'forms' },
+  { path: '/inventory', icon: Package, label: 'Inventory', permKey: 'inventory' },
+  { path: '/activity', icon: Clock, label: 'Activity Log', permKey: 'activity' },
 ];
 
 const Layout = () => {
@@ -27,6 +28,27 @@ const Layout = () => {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('careops_theme') === 'dark';
   });
+
+  // Filter nav items based on user role and permissions
+  const filteredNavItems = useMemo(() => {
+    if (!user) return navItems;
+    
+    // Owners and admins see everything
+    if (user.role === 'owner' || user.role === 'admin') {
+      return navItems;
+    }
+    
+    // Staff members: filter based on permissions
+    const userPerms = user.permissions?.sections || {};
+    return navItems.filter(item => {
+      // Dashboard is always visible
+      if (item.permKey === null) return true;
+      // Team section is only for owners/admins
+      if (item.permKey === 'team') return false;
+      // Check if section is enabled (default to true if not set)
+      return userPerms[item.permKey] !== false;
+    });
+  }, [user]);
 
   // Apply dark mode
   useEffect(() => {
@@ -84,7 +106,7 @@ const Layout = () => {
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {navItems.map(item => (
+          {filteredNavItems.map(item => (
             <NavLink
               key={item.path}
               to={item.path}

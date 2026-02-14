@@ -1,11 +1,21 @@
 // client/src/pages/TeamMembers.jsx - Staff management page
 import { useState, useEffect } from 'react';
-import { Users, UserPlus, Shield, ShieldCheck, User, Mail, Trash2, Edit3, X, Check, Briefcase, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, UserPlus, Shield, ShieldCheck, User, Mail, Trash2, Edit3, X, Check, Briefcase, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { dm, dt, dmc, useDarkMode } from '../utils/darkMode';
 
 const ROLES = { owner: { label: 'Owner', color: '#7c3aed', bg: '#ede9fe', dbg: '#4c1d95' }, admin: { label: 'Admin', color: '#0891b2', bg: '#ecfeff', dbg: '#164e63' }, staff: { label: 'Staff', color: '#059669', bg: '#ecfdf5', dbg: '#064e3b' } };
+
+// Available sections for permission control
+const SECTIONS = [
+  { key: 'bookings', label: 'Bookings', icon: '📅' },
+  { key: 'inbox', label: 'Inbox', icon: '💬' },
+  { key: 'contacts', label: 'Contacts', icon: '👥' },
+  { key: 'forms', label: 'Forms', icon: '📝' },
+  { key: 'inventory', label: 'Inventory', icon: '📦' },
+  { key: 'activity', label: 'Activity Log', icon: '📊' },
+];
 
 const TeamMembers = () => {
   useDarkMode();
@@ -17,6 +27,8 @@ const TeamMembers = () => {
   const [inviting, setInviting] = useState(false);
   const [expandedMember, setExpandedMember] = useState(null);
   const [editingServices, setEditingServices] = useState({});
+  const [editingPermissions, setEditingPermissions] = useState({});
+  const [permissionsExpanded, setPermissionsExpanded] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -110,6 +122,49 @@ const TeamMembers = () => {
       [member.id]: member.assigned_services?.map(s => s.id) || []
     }));
     setExpandedMember(expandedMember === member.id ? null : member.id);
+    setPermissionsExpanded(null); // Close permissions panel
+  };
+
+  // Permission management functions
+  const startEditingPermissions = (member) => {
+    const currentPerms = member.permissions?.sections || {};
+    // Initialize with all sections enabled by default for new staff
+    const initialPerms = {};
+    SECTIONS.forEach(s => {
+      initialPerms[s.key] = currentPerms[s.key] !== undefined ? currentPerms[s.key] : true;
+    });
+    setEditingPermissions(prev => ({
+      ...prev,
+      [member.id]: initialPerms
+    }));
+    setPermissionsExpanded(permissionsExpanded === member.id ? null : member.id);
+    setExpandedMember(null); // Close services panel
+  };
+
+  const togglePermission = (memberId, sectionKey) => {
+    setEditingPermissions(prev => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        [sectionKey]: !prev[memberId][sectionKey]
+      }
+    }));
+  };
+
+  const savePermissions = async (memberId) => {
+    const sections = editingPermissions[memberId];
+    if (!sections) return;
+    try {
+      const { data } = await api.put(`/staff/${memberId}/permissions`, { 
+        permissions: { sections } 
+      });
+      setStaff(prev => prev.map(m => m.id === memberId ? { ...m, permissions: data.permissions } : m));
+      setEditingPermissions(prev => { const n = { ...prev }; delete n[memberId]; return n; });
+      setPermissionsExpanded(null);
+      toast.success('Permissions updated');
+    } catch (err) {
+      toast.error('Failed to update permissions');
+    }
   };
 
   if (loading) {
@@ -234,6 +289,16 @@ const TeamMembers = () => {
                     >
                       <Briefcase size={15} />
                     </button>
+                    <button
+                      onClick={() => startEditingPermissions(member)}
+                      title="Section Permissions"
+                      style={{
+                        background: permissionsExpanded === member.id ? dm('#fef3c7') : dm('#f1f5f9'), border: 'none', cursor: 'pointer',
+                        borderRadius: '0.375rem', padding: '0.375rem', color: permissionsExpanded === member.id ? '#d97706' : dt('#64748b')
+                      }}
+                    >
+                      <Lock size={15} />
+                    </button>
                     <select
                       value={member.role}
                       onChange={e => handleRoleChange(member, e.target.value)}
@@ -310,6 +375,50 @@ const TeamMembers = () => {
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Expanded: Section Permissions */}
+              {permissionsExpanded === member.id && (
+                <div style={{
+                  marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)'
+                }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <Lock size={14} /> Section Permissions
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                    Control which sections this staff member can access. Dashboard is always accessible.
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                    {SECTIONS.map(section => {
+                      const isEnabled = editingPermissions[member.id]?.[section.key] ?? true;
+                      return (
+                        <button
+                          key={section.key}
+                          onClick={() => togglePermission(member.id, section.key)}
+                          style={{
+                            padding: '0.375rem 0.75rem', borderRadius: '1rem',
+                            border: `1.5px solid ${isEnabled ? '#059669' : '#e2e8f0'}`,
+                            background: isEnabled ? dm('#ecfdf5') : dm('white'),
+                            color: isEnabled ? '#059669' : dt('#94a3b8'),
+                            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500,
+                            transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '0.25rem'
+                          }}
+                        >
+                          <span>{section.icon}</span>
+                          {isEnabled ? '✓ ' : ''}{section.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                    <button onClick={() => savePermissions(member.id)} className="btn btn-primary" style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}>
+                      <Check size={14} /> Save Permissions
+                    </button>
+                    <button onClick={() => { setEditingPermissions(prev => { const n = { ...prev }; delete n[member.id]; return n; }); setPermissionsExpanded(null); }} className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.375rem 0.75rem' }}>
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
