@@ -207,17 +207,37 @@ router.post('/public', async (req, res) => {
       return res.status(400).json({ error: 'Failed to create booking: ' + bookingError.message });
     }
 
-    // Create conversation for this booking
-    const { data: conversation } = await supabase
+    // Reuse existing open conversation or create new one
+    let conversation;
+    const { data: existingConvo } = await supabase
       .from('conversations')
-      .insert({
-        workspace_id,
-        contact_id: contact.id,
-        subject: `Booking: ${service?.name || 'Service'} on ${date}`,
-        status: 'open'
-      })
-      .select()
+      .select('*')
+      .eq('workspace_id', workspace_id)
+      .eq('contact_id', contact.id)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
+
+    if (existingConvo) {
+      conversation = existingConvo;
+      await supabase.from('conversations').update({
+        last_message_at: new Date().toISOString()
+      }).eq('id', existingConvo.id);
+    } else {
+      const { data: newConvo } = await supabase
+        .from('conversations')
+        .insert({
+          workspace_id,
+          contact_id: contact.id,
+          subject: `Booking: ${service?.name || 'Service'} on ${date}`,
+          status: 'open',
+          last_message_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      conversation = newConvo;
+    }
 
     // Add initial message
     if (conversation) {

@@ -35,6 +35,11 @@ router.post('/public', async (req, res) => {
 
     if (existing) {
       contact_id = existing.id;
+      // Update name/phone if changed
+      await supabase.from('contacts').update({
+        name,
+        phone: phone || undefined
+      }).eq('id', existing.id);
     } else {
       const { data: newContact, error: createError } = await supabase
         .from('contacts')
@@ -52,21 +57,41 @@ router.post('/public', async (req, res) => {
       contact_id = newContact.id;
     }
 
-    // Create conversation & message
-    const { data: conversation, error: convError } = await supabase
+    // Reuse existing open conversation or create new one
+    let conversation;
+    const { data: existingConvo } = await supabase
       .from('conversations')
-      .insert({
-        workspace_id: workspace.id,
-        contact_id,
-        subject: message ? 'Contact Form Inquiry' : 'New Contact',
-        status: 'open',
-        last_message_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .eq('contact_id', contact_id)
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
 
-    if (convError) throw convError;
+    if (existingConvo) {
+      conversation = existingConvo;
+      // Update last_message_at
+      await supabase.from('conversations').update({
+        last_message_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }).eq('id', existingConvo.id);
+    } else {
+      const { data: newConvo, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+          workspace_id: workspace.id,
+          contact_id,
+          subject: message ? 'Contact Form Inquiry' : 'New Contact',
+          status: 'open',
+          last_message_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      if (convError) throw convError;
+      conversation = newConvo;
+    }
 
     if (message) {
       const { error: msgError } = await supabase.from('messages').insert({

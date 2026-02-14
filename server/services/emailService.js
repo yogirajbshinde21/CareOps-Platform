@@ -21,7 +21,10 @@ async function getTransporter() {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      }
+      },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000
     });
     console.log('📧 Email: Using configured SMTP server');
     return transporter;
