@@ -14,19 +14,25 @@ async function getTransporter() {
 
   // Check if real SMTP is configured
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER) {
+    const port = parseInt(process.env.EMAIL_PORT || '587');
+    const isSecure = port === 465;
     transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT || '587'),
-      secure: process.env.EMAIL_SECURE === 'true',
+      port,
+      secure: isSecure,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000
+      tls: {
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
+      },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 15000
     });
-    console.log('📧 Email: Using configured SMTP server');
+    console.log(`📧 Email: Using ${process.env.EMAIL_HOST}:${port} (secure=${isSecure})`);
     return transporter;
   }
 
