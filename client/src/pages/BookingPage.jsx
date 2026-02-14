@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Calendar, Clock, User, Mail, Phone, CheckCircle, ArrowRight, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import VoiceBookingModal from '../components/VoiceBookingModal';
 import { Mic } from 'lucide-react';
 import { dm, useDarkMode } from '../utils/darkMode';
@@ -190,7 +190,7 @@ const BookingPage = () => {
       background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)',
       padding: '2rem 1rem'
     }}>
-      <Toaster position="top-center" />
+
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'white' }}>

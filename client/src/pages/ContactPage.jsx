@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Mail, Phone, Send, CheckCircle, MapPin, Globe, MessageSquare, Loader } from 'lucide-react';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { dm, dt, useDarkMode } from '../utils/darkMode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -74,7 +74,6 @@ const ContactPage = () => {
       background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)',
       padding: '2rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <Toaster position="top-center" />
       
       <div className="contact-page-grid" style={{ maxWidth: '900px', width: '100%', display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '2rem', alignItems: 'start' }}>
         {/* Info Side */}
