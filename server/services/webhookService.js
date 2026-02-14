@@ -39,6 +39,10 @@ function formatSlackPayload(eventType, payload, workspaceName) {
       { title: 'Phone', value: payload.phone || 'N/A', short: true },
       { title: 'Source', value: payload.source || 'N/A', short: true }
     ];
+    // Add message field if present
+    if (payload.message) {
+      fields.push({ title: 'Message', value: payload.message, short: false });
+    }
   } else if (eventType === 'form_submitted') {
     color = '#7c3aed';
     fields = [

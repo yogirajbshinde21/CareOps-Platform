@@ -58,7 +58,9 @@ router.post('/public', async (req, res) => {
       .insert({
         workspace_id: workspace.id,
         contact_id,
+        subject: message ? 'Contact Form Inquiry' : 'New Contact',
         status: 'open',
+        last_message_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .select()
@@ -67,20 +69,20 @@ router.post('/public', async (req, res) => {
     if (convError) throw convError;
 
     if (message) {
-      await supabase.from('messages').insert({
+      const { error: msgError } = await supabase.from('messages').insert({
         conversation_id: conversation.id,
         sender_type: 'contact',
-        content: message,
-        is_read: false
+        content: message
       });
+      if (msgError) console.error('Message insert error:', msgError);
     }
 
     // Send welcome email
     const { data: contact } = await supabase.from('contacts').select('*').eq('id', contact_id).single();
     sendWelcomeEmail(contact, workspace).catch(console.error);
 
-    // Fire webhook
-    webhookEvents.contactCreated(workspace.id, contact).catch(() => {});
+    // Fire webhook with message included
+    webhookEvents.contactCreated(workspace.id, { ...contact, message }).catch(() => {});
 
     res.status(201).json({ message: 'Message sent successfully' });
   } catch (err) {

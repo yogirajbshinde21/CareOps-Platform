@@ -341,6 +341,19 @@ const Dashboard = () => {
                 </p>
               </div>
             )}
+
+            {/* Contact form link */}
+            {workspace?.slug && (
+              <div style={{
+                marginTop: '0.5rem', padding: '0.75rem',
+                background: dm('#ecfdf5'), borderRadius: '0.375rem', border: `1px solid ${dm('#a7f3d0')}`
+              }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#059669', marginBottom: '0.375rem' }}>Your Public Contact Form</p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', wordBreak: 'break-all', lineHeight: '1.4' }}>
+                  {window.location.origin}/contact/{workspace.slug}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
