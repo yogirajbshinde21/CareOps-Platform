@@ -6,10 +6,12 @@ import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import VoiceBookingModal from '../components/VoiceBookingModal';
 import { Mic } from 'lucide-react';
+import { dm, useDarkMode } from '../utils/darkMode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const BookingPage = () => {
+  useDarkMode();
   const { slug } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [services, setServices] = useState([]);
@@ -221,7 +223,7 @@ const BookingPage = () => {
         )}
 
         <div style={{
-          background: 'white', borderRadius: '1rem',
+          background: dm('white'), borderRadius: '1rem',
           padding: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.25)'
         }}>
           {/* Step 1: Select Service */}
@@ -236,7 +238,7 @@ const BookingPage = () => {
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '1rem', borderRadius: '0.5rem',
-                      border: '1px solid var(--border)', background: 'white',
+                      border: '1px solid var(--border)', background: dm('white'),
                       cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s'
                     }}
                   >
@@ -297,7 +299,7 @@ const BookingPage = () => {
                           style={{
                             padding: '0.5rem', borderRadius: '0.375rem',
                             border: `2px solid ${selectedTime === time ? 'var(--primary)' : 'var(--border)'}`,
-                            background: selectedTime === time ? '#eef2ff' : 'white',
+                            background: selectedTime === time ? dm('#eef2ff') : dm('white'),
                             color: selectedTime === time ? 'var(--primary)' : 'var(--text-primary)',
                             cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 500
                           }}
@@ -367,7 +369,7 @@ const BookingPage = () => {
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
               <div style={{
                 width: '4rem', height: '4rem', borderRadius: '50%',
-                background: '#ecfdf5', display: 'inline-flex',
+                background: dm('#ecfdf5'), display: 'inline-flex',
                 alignItems: 'center', justifyContent: 'center',
                 marginBottom: '1rem'
               }}>
@@ -378,7 +380,7 @@ const BookingPage = () => {
                 You'll receive a confirmation at {customer.email}
               </p>
               <div style={{
-                padding: '1rem', background: '#f8fafc',
+                padding: '1rem', background: dm('#f8fafc'),
                 borderRadius: '0.5rem', textAlign: 'left',
                 border: '1px solid var(--border)'
               }}>

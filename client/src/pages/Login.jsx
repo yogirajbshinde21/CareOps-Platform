@@ -4,8 +4,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { dm, useDarkMode } from '../utils/darkMode';
 
 const Login = () => {
+  useDarkMode();
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -47,7 +49,7 @@ const Login = () => {
       <div style={{
         width: '100%',
         maxWidth: '420px',
-        background: 'white',
+        background: dm('white'),
         borderRadius: '1rem',
         padding: '2.5rem',
         boxShadow: '0 25px 50px rgba(0,0,0,0.25)'
@@ -126,6 +128,14 @@ const Login = () => {
           Don't have an account?{' '}
           <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }}>
             Create one
+          </Link>
+        </p>
+        <p style={{
+          textAlign: 'center', fontSize: '0.8125rem',
+          color: 'var(--text-secondary)', marginTop: '0.5rem'
+        }}>
+          <Link to="/landing" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>
+            ← Back to Home
           </Link>
         </p>
       </div>

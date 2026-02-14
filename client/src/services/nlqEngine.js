@@ -435,6 +435,22 @@ export const SUGGESTIONS = [
   "Overdue forms",
 ];
 
+// Typing-animation queries shown in the search placeholder
+export const EXAMPLE_QUERIES = [
+  'How many bookings tomorrow?',
+  "Today's schedule",
+  'Revenue this week',
+  'Pending bookings',
+  'Low stock items',
+  'Open conversations',
+  'Busiest day this month',
+  'Business summary',
+  'Overdue forms',
+  'Recent contacts',
+  "Who hasn't replied?",
+  'Cancelled bookings',
+];
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SMART MATCHING ENGINE — handles typos, singular/plural, and partial matches
 // ═══════════════════════════════════════════════════════════════════════════════

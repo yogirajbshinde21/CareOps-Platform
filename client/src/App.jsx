@@ -19,6 +19,7 @@ import Forms from './pages/Forms';
 import FormPage from './pages/FormPage';
 import Inventory from './pages/Inventory';
 import ActivityLog from './pages/ActivityLog';
+import LandingPage from './pages/LandingPage';
 import api from './services/api';
 
 // Cold-start overlay — shows when backend (Render free tier) is waking up
@@ -77,7 +78,7 @@ const HomeRedirect = () => {
     return <div className="page-loading"><div className="spinner" style={{ width: '2rem', height: '2rem' }} /></div>;
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/landing" replace />;
   if (!workspace?.onboarding_completed) return <Navigate to="/onboarding" replace />;
   return <Navigate to="/dashboard" replace />;
 };
@@ -99,6 +100,7 @@ function App() {
         />
         <Routes>
           {/* Public routes */}
+          <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/book/:slug" element={<BookingPage />} />
@@ -110,11 +112,13 @@ function App() {
             <ProtectedRoute><Onboarding /></ProtectedRoute>
           } />
 
+          {/* Root — landing or dashboard based on auth */}
+          <Route path="/" element={<HomeRedirect />} />
+
           {/* Protected routes with layout */}
-          <Route path="/" element={
+          <Route element={
             <ProtectedRoute><Layout /></ProtectedRoute>
           }>
-            <Route index element={<HomeRedirect />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="bookings" element={<Bookings />} />
             <Route path="contacts" element={<Contacts />} />

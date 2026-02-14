@@ -4,10 +4,12 @@ import { useParams } from 'react-router-dom';
 import { Mail, Phone, Send, CheckCircle, MapPin, Globe, MessageSquare, Loader } from 'lucide-react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
+import { dm, dt, useDarkMode } from '../utils/darkMode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const ContactPage = () => {
+  useDarkMode();
   const { slug } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ const ContactPage = () => {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', background: '#f8fafc' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', background: dm('#f8fafc') }}>
         <MessageSquare size={48} style={{ color: '#cbd5e1' }} />
         <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#64748b' }}>{error}</h1>
       </div>
@@ -130,13 +132,13 @@ const ContactPage = () => {
         </div>
 
         {/* Form Side */}
-        <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+        <div style={{ background: dm('white'), borderRadius: '1.5rem', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-              <div style={{ width: '5rem', height: '5rem', background: '#ecfdf5', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ width: '5rem', height: '5rem', background: dm('#ecfdf5'), borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <CheckCircle size={40} color="#059669" />
               </div>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827', marginBottom: '0.75rem' }}>Message Sent!</h2>
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: dt('#111827'), marginBottom: '0.75rem' }}>Message Sent!</h2>
               <p style={{ color: '#64748b', fontSize: '1.125rem', lineHeight: 1.6 }}>
                 Thanks for reaching out, <strong>{form.name}</strong>.<br/>
                 We'll get back to you at <strong>{form.email || form.phone}</strong> shortly.
@@ -150,7 +152,7 @@ const ContactPage = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: '#1e293b' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: dt('#1e293b') }}>
                 Send a Message
               </h2>
               

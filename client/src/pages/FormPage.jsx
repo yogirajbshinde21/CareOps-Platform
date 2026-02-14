@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle, FileText, Loader, AlertCircle } from 'lucide-react';
 import axios from 'axios';
+import { dm, dt, useDarkMode } from '../utils/darkMode';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const FormPage = () => {
+  useDarkMode();
   const { formId } = useParams();
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get('bookingId');
@@ -127,7 +129,7 @@ const FormPage = () => {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: dm('#f8fafc') }}>
         <Loader size={32} className="animate-spin" style={{ color: '#4f46e5' }} />
       </div>
     );
@@ -135,8 +137,8 @@ const FormPage = () => {
 
   if (submitted) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-        <div style={{ textAlign: 'center', maxWidth: '400px', padding: '3rem 2rem', background: 'white', borderRadius: '1rem', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: dm('#f8fafc') }}>
+        <div style={{ textAlign: 'center', maxWidth: '400px', padding: '3rem 2rem', background: dm('white'), borderRadius: '1rem', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           <CheckCircle size={48} color="#22c55e" style={{ marginBottom: '1rem' }} />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Thank You!</h1>
           <p style={{ color: '#64748b', fontSize: '0.9375rem' }}>
@@ -149,7 +151,7 @@ const FormPage = () => {
 
   if (!form) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: dm('#f8fafc') }}>
         <div style={{ textAlign: 'center', maxWidth: '400px', padding: '3rem 2rem' }}>
           <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Form Not Found</h1>
@@ -160,21 +162,21 @@ const FormPage = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '2rem 1rem' }}>
+    <div style={{ minHeight: '100vh', background: dm('#f8fafc'), padding: '2rem 1rem' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#eef2ff', color: '#4f46e5', padding: '0.375rem 1rem', borderRadius: '2rem', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '1rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: dm('#eef2ff'), color: '#4f46e5', padding: '0.375rem 1rem', borderRadius: '2rem', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '1rem' }}>
             <FileText size={14} /> Intake Form
           </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>{form.name}</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: dt('#0f172a') }}>{form.name}</h1>
           {form.description && <p style={{ color: '#64748b', fontSize: '0.9375rem', marginTop: '0.5rem' }}>{form.description}</p>}
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
+        <form onSubmit={handleSubmit} style={{ background: dm('white'), borderRadius: '1rem', padding: '2rem', boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
           {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '0.5rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', color: '#dc2626', fontSize: '0.875rem' }}>
+            <div style={{ background: dm('#fef2f2'), border: '1px solid #fca5a5', borderRadius: '0.5rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', color: '#dc2626', fontSize: '0.875rem' }}>
               {error}
             </div>
           )}
@@ -182,7 +184,7 @@ const FormPage = () => {
           {(form.fields || []).map((field, idx) => (
             <div key={field.id || idx} style={{ marginBottom: '1.5rem' }}>
               {field.type !== 'checkbox' && (
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: dt('#374151') }}>
                   {field.label}
                   {field.required && <span style={{ color: '#ef4444', marginLeft: '0.25rem' }}>*</span>}
                 </label>

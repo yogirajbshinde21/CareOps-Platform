@@ -55,6 +55,8 @@ const darkTextMap = {
   '#0f172a': '#f1f5f9',
   '#166534': '#86efac',
   '#64748b': '#94a3b8',
+  '#374151': '#d1d5db',
+  '#111827': '#f1f5f9',
 };
 
 export const dm = (bg) => isDark() ? (darkBgMap[bg] || bg) : bg;

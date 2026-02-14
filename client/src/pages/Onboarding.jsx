@@ -197,7 +197,7 @@ const AIAssistantModal = ({
       padding: '1rem'
     }}>
       <div style={{
-        background: 'white', borderRadius: '1rem', width: '100%', maxWidth: '640px',
+        background: dm('white'), borderRadius: '1rem', width: '100%', maxWidth: '640px',
         maxHeight: '90vh', display: 'flex', flexDirection: 'column',
         boxShadow: '0 25px 60px rgba(0,0,0,0.3)', overflow: 'hidden'
       }}>

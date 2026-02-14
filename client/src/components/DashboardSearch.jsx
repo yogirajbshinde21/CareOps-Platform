@@ -1,9 +1,9 @@
 // client/src/components/DashboardSearch.jsx
 // Natural Language Query search bar for the Dashboard
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, ArrowRight, HelpCircle } from 'lucide-react';
-import { processQuery, SUGGESTIONS } from '../services/nlqEngine';
+import { processQuery, SUGGESTIONS, EXAMPLE_QUERIES } from '../services/nlqEngine';
 import { dm, dt, dmc, useDarkMode } from '../utils/darkMode';
 
 const DashboardSearch = ({ dashboardData }) => {
@@ -12,9 +12,46 @@ const DashboardSearch = ({ dashboardData }) => {
   const [result, setResult] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [placeholder, setPlaceholder] = useState('');
   const inputRef = useRef(null);
   const panelRef = useRef(null);
   const navigate = useNavigate();
+  const animRef = useRef({ mounted: true, timeout: null });
+
+  // ── Typing placeholder animation ──────────────────────────────────────
+  useEffect(() => {
+    animRef.current.mounted = true;
+    if (isFocused || query) { setPlaceholder(''); return; }
+
+    let qIdx = 0, cIdx = 0, deleting = false;
+    const tick = () => {
+      if (!animRef.current.mounted) return;
+      const word = EXAMPLE_QUERIES[qIdx];
+      if (!deleting) {
+        cIdx++;
+        setPlaceholder(word.slice(0, cIdx));
+        if (cIdx === word.length) {
+          deleting = true;
+          animRef.current.timeout = setTimeout(tick, 1800); // pause at full word
+          return;
+        }
+        animRef.current.timeout = setTimeout(tick, 70);
+      } else {
+        cIdx--;
+        setPlaceholder(word.slice(0, cIdx));
+        if (cIdx === 0) {
+          deleting = false;
+          qIdx = (qIdx + 1) % EXAMPLE_QUERIES.length;
+          animRef.current.timeout = setTimeout(tick, 400); // pause between words
+          return;
+        }
+        animRef.current.timeout = setTimeout(tick, 35);
+      }
+    };
+    animRef.current.timeout = setTimeout(tick, 600);
+    return () => { animRef.current.mounted = false; clearTimeout(animRef.current.timeout); };
+  }, [isFocused, query]);
 
   // Close panel on outside click
   useEffect(() => {
@@ -160,21 +197,42 @@ const DashboardSearch = ({ dashboardData }) => {
     );
   };
 
-  const renderList = (res) => (
-    <div>
-      <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{res.title}</p>
-      {res.subtitle && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>{res.subtitle}</p>}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-        {(res.items || []).map((item, i) => (
-          <div key={i} style={{
-            padding: '0.375rem 0.625rem', borderRadius: '0.375rem',
-            background: dm('#f8fafc'), border: '1px solid var(--border)',
-            fontSize: '0.85rem'
-          }}>{item}</div>
-        ))}
+  const renderList = (res) => {
+    // Check if items look like help queries (start with emoji)
+    const isHelp = res.items?.length && /^[\p{Emoji}]/u.test(res.items[0]);
+    return (
+      <div>
+        <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{res.title}</p>
+        {res.subtitle && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>{res.subtitle}</p>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          {(res.items || []).map((item, i) => {
+            // Extract raw query text by stripping leading emoji + space + quotes
+            const rawQuery = item.replace(/^[\p{Emoji}\s]+/u, '').replace(/^["']|["']$/g, '');
+            return isHelp ? (
+              <button
+                key={i}
+                onClick={() => { handleSuggestion(rawQuery); }}
+                style={{
+                  padding: '0.375rem 0.625rem', borderRadius: '0.375rem',
+                  background: dm('#f8fafc'), border: '1px solid var(--border)',
+                  fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left',
+                  transition: 'all 0.15s', display: 'block', width: '100%'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = dm('#eef2ff')}
+                onMouseLeave={e => e.currentTarget.style.background = dm('#f8fafc')}
+              >{item}</button>
+            ) : (
+              <div key={i} style={{
+                padding: '0.375rem 0.625rem', borderRadius: '0.375rem',
+                background: dm('#f8fafc'), border: '1px solid var(--border)',
+                fontSize: '0.85rem'
+              }}>{item}</div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderResult = () => {
     if (!result) return null;
@@ -235,9 +293,10 @@ const DashboardSearch = ({ dashboardData }) => {
           type="text"
           value={query}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => { setIsOpen(true); setIsFocused(true); }}
+          onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
-          placeholder='Ask anything... "How many bookings tomorrow?"'
+          placeholder={isFocused ? 'Ask anything...' : (placeholder ? placeholder : 'Ask anything...')}
           style={{
             flex: 1, border: 'none', outline: 'none', fontSize: '0.875rem',
             background: 'transparent', color: 'var(--text-primary)',
