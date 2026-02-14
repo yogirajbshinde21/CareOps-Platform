@@ -1,6 +1,6 @@
 // client/src/pages/Bookings.jsx - Bookings management page
 import { useState, useEffect } from 'react';
-import { Calendar, Filter, CheckCircle, XCircle, Clock, Bell, Send } from 'lucide-react';
+import { Calendar, Filter, CheckCircle, XCircle, Clock, Bell, Send, ExternalLink } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { dm, useDarkMode } from '../utils/darkMode';
@@ -43,6 +43,19 @@ const Bookings = () => {
     } catch (err) {
       toast.error('Failed to send reminder');
     }
+  };
+
+  const getGoogleCalUrl = (b) => {
+    if (!b.date || !b.start_time) return '';
+    const [h, m] = b.start_time.split(':').map(Number);
+    const start = new Date(b.date);
+    start.setHours(h, m, 0, 0);
+    const duration = b.services?.duration || 60;
+    const end = new Date(start.getTime() + duration * 60000);
+    const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const title = encodeURIComponent(`${b.services?.name || 'Appointment'} — ${b.contacts?.name || 'Customer'}`);
+    const details = encodeURIComponent(`Customer: ${b.contacts?.name || 'N/A'}\nEmail: ${b.contacts?.email || ''}\nPhone: ${b.contacts?.phone || ''}\nService: ${b.services?.name || ''}\nDuration: ${duration} min`);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(start)}/${fmt(end)}&details=${details}`;
   };
 
   const filtered = filter === 'all' ? bookings : bookings.filter(b => b.status === filter);
@@ -95,6 +108,7 @@ const Bookings = () => {
                   <th>Status</th>
                   <th>Actions</th>
                   <th>Remind</th>
+                  <th>Calendar</th>
                 </tr>
               </thead>
               <tbody>
@@ -142,6 +156,20 @@ const Bookings = () => {
                         >
                           <Bell size={15} />
                         </button>
+                      )}
+                    </td>
+                    <td>
+                      {(b.status === 'pending' || b.status === 'confirmed') && (
+                        <a
+                          href={getGoogleCalUrl(b)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm"
+                          style={{ background: dm('#ecfdf5'), color: '#059669', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none' }}
+                          title="Add to Google Calendar"
+                        >
+                          <Calendar size={14} /> <ExternalLink size={12} />
+                        </a>
                       )}
                     </td>
                   </tr>

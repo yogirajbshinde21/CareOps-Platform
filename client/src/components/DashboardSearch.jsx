@@ -85,13 +85,9 @@ const DashboardSearch = ({ dashboardData }) => {
     const q = text || query;
     if (!q.trim()) { setResult(null); return; }
     
-    // Show loading animation for ~1.5 seconds
     setIsLoading(true);
     setResult(null);
     setIsOpen(true);
-    
-    // Fixed delay for consistent, smooth experience
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
     const res = processQuery(q, dashboardData);
     setIsLoading(false);

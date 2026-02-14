@@ -874,17 +874,17 @@ const Onboarding = () => {
             </div>
             <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1.5rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Settings size={16} /> Webhook Integration
+                <Settings size={16} /> Notifications Integration
               </h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', marginBottom: '1rem' }}>
-                Receive real-time notifications when bookings, contacts, or forms are created. Events are sent as POST requests.
+                Get instant notifications on <strong>Slack</strong> or any webhook-compatible app when bookings, contacts, or forms are created.
               </p>
               <div className="form-group">
-                <label className="label">Webhook URL (optional)</label>
-                <input className="input" placeholder="https://hooks.zapier.com/... or your endpoint" value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} />
+                <label className="label">Slack Webhook URL or Custom URL (optional)</label>
+                <input className="input" placeholder="https://hooks.slack.com/services/... or any URL" value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} />
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: dm('#f8fafc'), padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
-                <strong>Events sent:</strong> booking.created, contact.created, form.submitted, inventory.low_stock
+                <strong>💡 Slack setup:</strong> In Slack, go to <em>Apps → Incoming Webhooks → Add to Slack</em> → Copy the URL and paste it above. You'll get rich notifications for every event!
               </div>
             </div>
           </div>
@@ -985,7 +985,7 @@ const Onboarding = () => {
                       >
                         <span style={{ fontSize: '2rem' }}>{tpl.icon}</span>
                         <span style={{ fontWeight: 700, fontSize: '0.8125rem', color: dt('#1a1a2e') }}>{type}</span>
-                        <span style={{ fontSize: '0.6875rem', color: '#888', lineHeight: 1.3 }}>{tpl.tagline}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#888', lineHeight: 1.3 }}>{tpl.tagline}</span>
                         <span style={{ fontSize: '0.625rem', color: '#4f46e5', fontWeight: 600, marginTop: '0.25rem' }}>
                           {tpl.services.length} services · {tpl.inventory.length} items
                         </span>
@@ -1017,7 +1017,7 @@ const Onboarding = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', textTransform: 'uppercase' }}>Step {step} of {totalSteps}</p>
-              <button onClick={() => setShowAIModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '1rem', padding: '0.25rem 0.75rem', cursor: 'pointer', fontSize: '0.6875rem', fontWeight: 600 }}>
+              <button onClick={() => setShowAIModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', border: 'none', borderRadius: '1rem', padding: '0.25rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                 <Sparkles size={12} /> AI Fill
               </button>
             </div>

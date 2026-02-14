@@ -269,7 +269,7 @@ const Contacts = () => {
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: 600, fontSize: '0.8125rem' }}>{event.title}</span>
-                            <span style={{ fontSize: '0.6875rem', color: dt('#64748b'), whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: '0.75rem', color: dt('#64748b'), whiteSpace: 'nowrap' }}>
                               {formatTimelineDate(event.timestamp)}
                             </span>
                           </div>

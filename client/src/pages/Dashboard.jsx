@@ -194,7 +194,7 @@ const Dashboard = () => {
           <div key={card.label} className="card" style={{ padding: '1rem', cursor: card.link ? 'pointer' : 'default', transition: 'box-shadow 0.15s' }} onClick={() => card.link && navigate(card.link)}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</p>
+                <p style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</p>
                 <p style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.125rem', color: card.color }}>{card.value}</p>
               </div>
               <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.5rem', background: typeof card.bg === 'function' ? card.bg() : card.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -335,8 +335,8 @@ const Dashboard = () => {
                 marginTop: '0.75rem', padding: '0.75rem',
                 background: dm('#eef2ff'), borderRadius: '0.375rem', border: `1px solid ${dm('#c7d2fe')}`
               }}>
-                <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.25rem' }}>Your Public Booking Link</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.375rem' }}>Your Public Booking Link</p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', wordBreak: 'break-all', lineHeight: '1.4' }}>
                   {window.location.origin}/book/{workspace.slug}
                 </p>
               </div>

@@ -192,7 +192,7 @@ const TeamMembers = () => {
                     <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>{member.name}</span>
                     <span style={{
                       padding: '0.125rem 0.5rem', borderRadius: '1rem',
-                      fontSize: '0.6875rem', fontWeight: 600,
+                      fontSize: '0.75rem', fontWeight: 600,
                       background: dm(roleInfo.bg), color: roleInfo.color,
                       display: 'flex', alignItems: 'center', gap: '0.25rem'
                     }}>
@@ -202,7 +202,7 @@ const TeamMembers = () => {
                     {!member.is_active && (
                       <span style={{
                         padding: '0.125rem 0.5rem', borderRadius: '1rem',
-                        fontSize: '0.6875rem', fontWeight: 500, background: dm('#fee2e2'), color: '#dc2626'
+                        fontSize: '0.75rem', fontWeight: 500, background: dm('#fee2e2'), color: '#dc2626'
                       }}>Inactive</span>
                     )}
                   </div>
@@ -214,7 +214,7 @@ const TeamMembers = () => {
                       {member.assigned_services.map(s => (
                         <span key={s.id} style={{
                           padding: '0.125rem 0.375rem', borderRadius: '0.25rem',
-                          fontSize: '0.6875rem', ...dmc('#f1f5f9', '#475569')
+                          fontSize: '0.75rem', ...dmc('#f1f5f9', '#475569')
                         }}>{s.name}</span>
                       ))}
                     </div>

@@ -199,7 +199,7 @@ const Inventory = () => {
                     background: isLow ? (isCritical ? dm('#fef2f2') : dm('#fffbeb')) : dm('#f8fafc'),
                     color: isLow ? (isCritical ? '#dc2626' : '#d97706') : 'var(--text-primary)'
                   }}>
-                    {item.quantity} <span style={{ fontSize: '0.6875rem', fontWeight: 400, color: 'var(--text-secondary)' }}>{item.unit}</span>
+                    {item.quantity} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-secondary)' }}>{item.unit}</span>
                   </div>
                   <button onClick={() => handleAdjust(item, 1)} style={{
                     width: '1.75rem', height: '1.75rem', borderRadius: '0.25rem',

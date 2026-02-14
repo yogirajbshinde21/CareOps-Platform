@@ -184,7 +184,7 @@ const Forms = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
                   {Object.entries(sub.data || {}).map(([key, value]) => (
                     <div key={key} style={{ background: dm('#f8fafc'), padding: '0.5rem', borderRadius: '0.375rem' }}>
-                      <div style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{key}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{key}</div>
                       <div style={{ fontSize: '0.8125rem', color: 'var(--text-primary)' }}>{String(value)}</div>
                     </div>
                   ))}
@@ -277,7 +277,7 @@ const Forms = () => {
                             <ChevronDown size={14} />
                           </button>
                         </div>
-                        <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6366f1', background: dm('#eef2ff'), padding: '0.125rem 0.375rem', borderRadius: '0.25rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6366f1', background: dm('#eef2ff'), padding: '0.125rem 0.375rem', borderRadius: '0.25rem' }}>
                           {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
                         </span>
                         <div style={{ flex: 1 }}>
@@ -382,7 +382,7 @@ const Forms = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ fontWeight: 600 }}>{form.name}</span>
                   <span style={{
-                    fontSize: '0.6875rem', padding: '0.125rem 0.375rem', borderRadius: '1rem',
+                    fontSize: '0.75rem', padding: '0.125rem 0.375rem', borderRadius: '1rem',
                     background: form.is_active ? dm('#ecfdf5') : dm('#fee2e2'),
                     color: form.is_active ? '#059669' : '#dc2626'
                   }}>

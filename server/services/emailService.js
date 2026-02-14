@@ -1,5 +1,6 @@
 // server/services/emailService.js - Email notifications via Nodemailer + Ethereal
 const nodemailer = require('nodemailer');
+const supabase = require('../config/supabase');
 
 let transporter = null;
 let etherealAccount = null;
@@ -296,10 +297,20 @@ async function sendWelcomeEmail(contact, workspace) {
  */
 async function sendLowStockAlert(item, workspace) {
   const transport = await getTransporter();
-  // In a real app we'd get the owner's email. For prototype we'll use a placeholder or the workspace email if available.
-  // We'll just log it clearly for the demo if no email is easily available without an extra query.
-  // Actually, let's assume we pass the email.
-  const ownerEmail = workspace?.email || 'owner@careops.demo'; 
+  // Use workspace email, or look up owner's email from workspace owner_id
+  let ownerEmail = workspace?.email;
+  if (!ownerEmail && workspace?.owner_id) {
+    const { data: owner } = await supabase
+      .from('users')
+      .select('email')
+      .eq('id', workspace.owner_id)
+      .single();
+    ownerEmail = owner?.email;
+  }
+  if (!ownerEmail) {
+    console.warn('⚠️ Low stock alert skipped — no owner email found for workspace', workspace?.id);
+    return null;
+  }
   
   if (!transport) return null;
 

@@ -202,7 +202,7 @@ const Inbox = () => {
                     color: m.sender_type === 'staff' ? 'white' : 'var(--text-primary)'
                   }}>
                     {m.sender_type === 'system' && (
-                      <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>System</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>System</div>
                     )}
                     {m.content}
                     <div style={{

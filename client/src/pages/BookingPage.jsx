@@ -1,7 +1,7 @@
 // client/src/pages/BookingPage.jsx - Public booking page for customers
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Calendar, Clock, User, Mail, Phone, CheckCircle, ArrowRight, ArrowLeft, FileText } from 'lucide-react';
+import { Calendar, Clock, User, Mail, Phone, CheckCircle, ArrowRight, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import VoiceBookingModal from '../components/VoiceBookingModal';
@@ -28,6 +28,9 @@ const BookingPage = () => {
     name: '', email: '', phone: '', notes: ''
   });
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [realSlots, setRealSlots] = useState([]);
+  const [slotMeta, setSlotMeta] = useState({});
 
   useEffect(() => {
     fetchBookingData();
@@ -55,33 +58,27 @@ const BookingPage = () => {
     }
   };
 
-  const getSlotsForDate = (dateStr) => {
-    if (!availability.length) return [];
-    const dayOfWeek = new Date(dateStr).getDay();
-    const dayAvail = availability.find(a => a.day_of_week === dayOfWeek);
-    if (!dayAvail || !dayAvail.is_available) return [];
-
-    const slots = [];
-    const [startH, startM] = dayAvail.start_time.split(':').map(Number);
-    const [endH, endM] = dayAvail.end_time.split(':').map(Number);
-    const duration = selectedService?.duration || 60;
-
-    let current = startH * 60 + startM;
-    const end = endH * 60 + endM;
-
-    while (current + duration <= end) {
-      const h = Math.floor(current / 60);
-      const m = current % 60;
-      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      current += 30; // 30-min intervals
+  // Fetch REAL available slots from backend (checks existing bookings + buffer time)
+  const fetchRealSlots = async (dateStr) => {
+    if (!dateStr || !selectedService || !workspace) return;
+    setSlotsLoading(true);
+    setRealSlots([]);
+    setSelectedTime('');
+    try {
+      const res = await axios.get(`${API_URL}/availability/slots/${workspace.id}`, {
+        params: { date: dateStr, serviceId: selectedService.id }
+      });
+      setRealSlots(res.data.slots || []);
+      setSlotMeta(res.data);
+    } catch (err) {
+      console.error('Failed to fetch slots:', err);
+      setRealSlots([]);
+    } finally {
+      setSlotsLoading(false);
     }
-    return slots;
   };
 
-  const generateTimeSlots = () => {
-    if (!selectedDate) return [];
-    return getSlotsForDate(selectedDate);
-  };
+  const generateTimeSlots = () => realSlots;
 
   const handleSubmit = async (voiceOverride = null) => {
     // Voice AI passes all booking data (name, email, phone, date, serviceId, etc.)
@@ -128,11 +125,28 @@ const BookingPage = () => {
 
       setStep(4);
       toast.success('Booking confirmed!');
+      return { success: true }; // Return success for voice booking
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to create booking');
+      const errorMsg = err.response?.data?.error || 'Failed to create booking';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg }; // Return failure for voice booking
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Build Google Calendar "Add to Calendar" URL
+  const getGoogleCalendarUrl = () => {
+    if (!selectedDate || !selectedTime || !selectedService) return '';
+    const [h, m] = selectedTime.split(':').map(Number);
+    const start = new Date(selectedDate);
+    start.setHours(h, m, 0, 0);
+    const end = new Date(start.getTime() + (selectedService.duration || 60) * 60000);
+    const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const title = encodeURIComponent(`${selectedService.name} at ${workspace?.name || 'CareOps'}`);
+    const details = encodeURIComponent(`Service: ${selectedService.name}\nDuration: ${selectedService.duration} min${selectedService.price > 0 ? `\nPrice: ₹${selectedService.price}` : ''}\n\nBooked via CareOps`);
+    const location = encodeURIComponent(workspace?.address || '');
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(start)}/${fmt(end)}&details=${details}&location=${location}`;
   };
 
   // Get min date (today)
@@ -141,10 +155,11 @@ const BookingPage = () => {
     return today.toISOString().split('T')[0];
   };
 
-  // Get max date (advance booking days)
+  // Get max date (uses real advance_booking_days from workspace settings)
   const getMaxDate = () => {
     const d = new Date();
-    d.setDate(d.getDate() + 30);
+    const maxDays = slotMeta.advanceBookingDays || workspace?.settings?.booking_preferences?.advance_booking_days || 30;
+    d.setDate(d.getDate() + maxDays);
     return d.toISOString().split('T')[0];
   };
 
@@ -278,7 +293,7 @@ const BookingPage = () => {
                   type="date"
                   className="input"
                   value={selectedDate}
-                  onChange={e => { setSelectedDate(e.target.value); setSelectedTime(''); }}
+                  onChange={e => { setSelectedDate(e.target.value); setSelectedTime(''); fetchRealSlots(e.target.value); }}
                   min={getMinDate()}
                   max={getMaxDate()}
                 />
@@ -287,30 +302,50 @@ const BookingPage = () => {
               {selectedDate && (
                 <div className="form-group">
                   <label className="label">Available Times</label>
-                  {generateTimeSlots().length > 0 ? (
-                    <div style={{
-                      display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))',
-                      gap: '0.5rem'
-                    }}>
-                      {generateTimeSlots().map(time => (
-                        <button
-                          key={time}
-                          onClick={() => setSelectedTime(time)}
-                          style={{
-                            padding: '0.5rem', borderRadius: '0.375rem',
-                            border: `2px solid ${selectedTime === time ? 'var(--primary)' : 'var(--border)'}`,
-                            background: selectedTime === time ? dm('#eef2ff') : dm('white'),
-                            color: selectedTime === time ? 'var(--primary)' : 'var(--text-primary)',
-                            cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 500
-                          }}
-                        >
-                          {time}
-                        </button>
-                      ))}
+                  {slotsLoading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 0' }}>
+                      <div className="spinner" style={{ width: '1.25rem', height: '1.25rem' }} />
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>Checking availability...</span>
                     </div>
+                  ) : generateTimeSlots().length > 0 ? (
+                    <>
+                      {slotMeta.bufferTime > 0 && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                          {slotMeta.bufferTime} min buffer between appointments
+                        </p>
+                      )}
+                      <div style={{
+                        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))',
+                        gap: '0.5rem'
+                      }}>
+                        {generateTimeSlots().map(time => (
+                          <button
+                            key={time}
+                            onClick={() => setSelectedTime(time)}
+                            style={{
+                              padding: '0.5rem', borderRadius: '0.375rem',
+                              border: `2px solid ${selectedTime === time ? 'var(--primary)' : 'var(--border)'}`,
+                              background: selectedTime === time ? dm('#eef2ff') : dm('white'),
+                              color: selectedTime === time ? 'var(--primary)' : 'var(--text-primary)',
+                              cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 500
+                            }}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : slotMeta.tooFarAhead ? (
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--warning, #f59e0b)', fontStyle: 'italic' }}>
+                      Bookings can only be made up to {slotMeta.maxDays} days in advance
+                    </p>
+                  ) : slotMeta.past ? (
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                      Cannot book in the past
+                    </p>
                   ) : (
                     <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                      No availability on this day
+                      {slotMeta.closed ? 'Business is closed on this day' : 'All slots are booked for this day'}
                     </p>
                   )}
                 </div>
@@ -375,9 +410,14 @@ const BookingPage = () => {
               }}>
                 <CheckCircle size={32} color="var(--success)" />
               </div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Booking Confirmed!</h2>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                {slotMeta.autoConfirm ? 'Booking Confirmed!' : 'Booking Submitted!'}
+              </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-                You'll receive a confirmation at {customer.email}
+                {slotMeta.autoConfirm 
+                  ? `Your appointment has been confirmed. A confirmation will be sent to ${customer.email}.`
+                  : `Your booking request has been received. ${workspace?.name || 'The business'} will confirm your appointment shortly.`
+                }
               </p>
               <div style={{
                 padding: '1rem', background: dm('#f8fafc'),
@@ -397,6 +437,24 @@ const BookingPage = () => {
                   <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>{selectedTime}</span>
                 </div>
               </div>
+              {/* Add to Google Calendar */}
+              <a
+                href={getGoogleCalendarUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  marginTop: '1.25rem', padding: '0.625rem 1.25rem',
+                  borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 600,
+                  background: dm('#eef2ff'), color: '#4f46e5',
+                  border: '1px solid #c7d2fe', textDecoration: 'none',
+                  transition: 'all 0.15s'
+                }}
+                onMouseOver={e => { e.currentTarget.style.background = '#e0e7ff'; }}
+                onMouseOut={e => { e.currentTarget.style.background = dm('#eef2ff'); }}
+              >
+                <Calendar size={16} /> Add to Google Calendar <ExternalLink size={13} />
+              </a>
             </div>
           )}
         </div>

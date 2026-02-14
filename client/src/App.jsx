@@ -60,10 +60,11 @@ const ColdStartOverlay = () => {
       background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexDirection: 'column', gap: '1.25rem', color: 'white',
+      padding: '1.5rem',
     }}>
       <div className="spinner" style={{ width: '2.5rem', height: '2.5rem', borderColor: 'rgba(255,255,255,0.2)', borderTopColor: '#818cf8' }} />
-      <p style={{ fontSize: '1.125rem', fontWeight: 600 }}>Server is waking up...</p>
-      <p style={{ fontSize: '0.875rem', opacity: 0.7, maxWidth: '320px', textAlign: 'center', lineHeight: 1.5 }}>
+      <p style={{ fontSize: 'clamp(1rem, 4vw, 1.125rem)', fontWeight: 600, textAlign: 'center' }}>Server is waking up...</p>
+      <p style={{ fontSize: 'clamp(0.8125rem, 3.5vw, 0.875rem)', opacity: 0.7, maxWidth: '320px', textAlign: 'center', lineHeight: 1.5 }}>
         Please wait 15-30 seconds. Free-tier servers go to sleep after inactivity.
       </p>
     </div>

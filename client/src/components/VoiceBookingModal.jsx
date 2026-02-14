@@ -298,8 +298,28 @@ const VoiceBookingModal = ({
         console.log('🎯 Confirm action. Accumulated data:', accumulated);
 
         if (accumulated.name && accumulated.email) {
-          callbacksRef.current.onConfirmBook(accumulated);
-          callbacksRef.current.onClose();
+          // Wait for booking result to handle failures gracefully
+          try {
+            const result = await callbacksRef.current.onConfirmBook(accumulated);
+            if (result?.success) {
+              // Booking succeeded - close modal
+              speak('Your booking is confirmed. Thank you!');
+              setTimeout(() => callbacksRef.current.onClose(), 2000);
+            } else {
+              // Booking failed (e.g., slot no longer available)
+              const errorMsg = result?.error || 'That time slot is no longer available.';
+              const recoveryMsg = `Sorry, ${errorMsg.toLowerCase()} Please try a different time.`;
+              setMessages(prev => [...prev, { role: 'assistant', content: recoveryMsg }]);
+              speak(recoveryMsg);
+              // Reset accumulated time so user can pick a new one
+              delete customerDataRef.current.time;
+              delete customerDataRef.current.date;
+            }
+          } catch (err) {
+            const recoveryMsg = 'Sorry, something went wrong. Please try again.';
+            setMessages(prev => [...prev, { role: 'assistant', content: recoveryMsg }]);
+            speak(recoveryMsg);
+          }
         }
       }
 

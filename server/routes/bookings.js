@@ -130,6 +130,43 @@ router.post('/public', async (req, res) => {
       .eq('id', service_id)
       .single();
 
+    // ---- DOUBLE-BOOKING PREVENTION ----
+    // Get workspace booking preferences (buffer_time)
+    const { data: wsSettings } = await supabase
+      .from('workspaces')
+      .select('settings')
+      .eq('id', workspace_id)
+      .single();
+
+    const prefs = wsSettings?.settings?.booking_preferences || {};
+    const bufferTime = prefs.buffer_time || 0;
+    const autoConfirm = prefs.auto_confirm || false;
+
+    // Check for overlapping bookings on the same date
+    const { data: existingBookings } = await supabase
+      .from('bookings')
+      .select('start_time, end_time')
+      .eq('workspace_id', workspace_id)
+      .eq('date', date)
+      .in('status', ['pending', 'confirmed']);
+
+    const [sh, sm] = start_time.split(':').map(Number);
+    const slotStart = sh * 60 + sm;
+    const slotEnd = slotStart + (service?.duration || 60);
+
+    const hasConflict = (existingBookings || []).some(b => {
+      const [bsh, bsm] = b.start_time.split(':').map(Number);
+      const [beh, bem] = b.end_time.split(':').map(Number);
+      const bStart = bsh * 60 + bsm - bufferTime;
+      const bEnd = beh * 60 + bem + bufferTime;
+      return slotStart < bEnd && slotEnd > bStart;
+    });
+
+    if (hasConflict) {
+      return res.status(409).json({ error: 'This time slot is no longer available. Please choose another time.' });
+    }
+    // ---- END DOUBLE-BOOKING PREVENTION ----
+
     // Create booking
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
@@ -141,7 +178,7 @@ router.post('/public', async (req, res) => {
         start_time,
         end_time: end_time || start_time,
         notes: customer.notes || '',
-        status: 'pending'
+        status: autoConfirm ? 'confirmed' : 'pending'
       })
       .select()
       .single();
@@ -230,7 +267,10 @@ router.post('/public', async (req, res) => {
     }
 
     // Fire webhook (fire-and-forget)
-    webhookEvents.bookingCreated(workspace_id, booking, contact, service).catch(() => {});
+    console.log(`📢 [DEBUG] Triggering webhookEvents.bookingCreated for workspace ${workspace_id}`);
+    webhookEvents.bookingCreated(workspace_id, booking, contact, service)
+      .then(result => console.log(`📢 [DEBUG] Webhook result:`, result))
+      .catch(err => console.error('📢 [DEBUG] Webhook error:', err));
 
     res.status(201).json({
       message: 'Booking created successfully',
